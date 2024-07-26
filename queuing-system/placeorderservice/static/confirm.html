@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+        header h1 {
+            margin: 0;
+        }
+        header.scrolled {
+            background-color: #388E3C;
+        }
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            animation: fadeIn 1s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin: 0 10px;
+        }
+        .button-container button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        footer {
+            text-align: center;
+            padding: 15px 0;
+            background-color: #4CAF50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Shopping Cart</h1>
+    </header>
+    <div class="container">
+        <h2>Your Cart</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Cart items will be dynamically inserted here -->
+            </tbody>
+        </table>
+        <div class="button-container">
+            <button onclick="confirmOrder()">Confirm Order</button>
+            <button onclick="cancelOrder()">Cancel Order</button>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Pharmacy Service Platform
+    </footer>
+    <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function checkUserCredentials() {
+            const userID = getCookie('userID');
+            const emailID = getCookie('userEmail');
+
+            if (!userID || !emailID) {
+                alert('User ID or Email is missing. Please log in again.');
+                return false;
+            }
+            return { userID, emailID };
+        }
+
+        async function fetchCart() {
+            const credentials = checkUserCredentials();
+            if (!credentials) return;
+
+            const response = await fetch(`http://localhost:9003/cart?userID=${credentials.userID}`);
+            const cartItems = await response.json();
+            const tableBody = document.getElementById('cart-items');
+            tableBody.innerHTML = '';
+
+            cartItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${item.product_id}</td><td>${item.quantity}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function confirmOrder() {
+            const credentials = checkUserCredentials();
+            if (!credentials) return;
+
+            const cartItems = Array.from(document.querySelectorAll('#cart-items tr')).map(row => ({
+                user_id: parseInt(credentials.userID),
+                email_id: credentials.emailID,
+                product_id: parseInt(row.cells[0].innerText),
+                quantity: parseInt(row.cells[1].innerText)
+            }));
+
+            const order = {
+                user_id: parseInt(credentials.userID),
+                email_id: credentials.emailID,
+                cart: cartItems
+            };
+
+            const response = await fetch(`http://localhost:8005/confirmorder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(order)
+            });
+
+            const result = await response.json();
+            alert(result.message);
+
+            if (response.ok) {
+                fetchCart(); // Refresh the cart after confirmation
+            }
+        }
+
+        async function cancelOrder() {
+            const credentials = checkUserCredentials();
+            if (!credentials) return;
+
+            const response = await fetch(`http://localhost:9003/cancel?userID=${credentials.userID}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            alert(result.message);
+
+            if (response.ok) {
+                fetchCart(); // Refresh the cart after cancellation
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchCart);
+    </script>
+</body>
+</html>

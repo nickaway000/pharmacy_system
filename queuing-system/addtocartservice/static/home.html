@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Pharmacy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .search-bar {
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+        .search-bar input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .product {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+        .product img {
+            width: 100px;
+            height: 100px;
+            margin-right: 20px;
+            border-radius: 8px;
+        }
+        .product-details {
+            flex-grow: 1;
+        }
+        .product-details h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .product-details p {
+            margin: 5px 0 10px;
+            color: #777;
+        }
+        .quantity-selector {
+            margin-left: auto;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+    <script>
+        async function addToCart(productName, productId, quantity) {
+        try {
+            const userID = getCookie('userID');
+            const emailID = getCookie('userEmail');
+
+            if (!userID || !emailID) {
+                alert('User ID or Email is missing. Please log in again.');
+                return;
+            }
+
+            const response = await fetch('http://localhost:9001/addtocart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: parseInt(userID),
+                    email_id: emailID,
+                    product_id: parseInt(productId),
+                    quantity: parseInt(quantity)
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(result.message); 
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to add to cart: ${errorData.message}`);
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+        }
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+        function filterProducts() {
+            var input, filter, container, products, i, productName;
+            input = document.getElementById('searchInput');
+            filter = input.value.toUpperCase();
+            container = document.getElementById('productContainer');
+            products = container.getElementsByClassName('product');
+
+            for (i = 0; i < products.length; i++) {
+                productName = products[i].getElementsByClassName('product-details')[0].getElementsByTagName('h3')[0].innerText;
+                if (productName.toUpperCase().indexOf(filter) > -1 || filter === '') {
+                    products[i].style.display = "";
+                } else {
+                    products[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Online Pharmacy</h1>
+        <div class="search-bar">
+            <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Search products...">
+        </div>
+        <button onclick="location.href='http://localhost:9003/confirm.html'">Cart</button>
+
+    </header>
+    <div class="container" id="productContainer">
+        <h2>Medicine Inventory</h2>
+        <div class="product" data-product-id="1">
+            <img src="https://via.placeholder.com/100" alt="Tylenol">
+            <div class="product-details">
+                <h3>Tylenol</h3>
+                <p>For pain relief and fever reduction.</p>
+            </div>
+            <div class="quantity-selector">
+                <label for="qty-tylenol">Quantity:</label>
+                <select id="qty-tylenol">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button onclick="addToCart('Tylenol', 1, document.getElementById('qty-tylenol').value)">Add to Cart</button>
+        </div>
+        <div class="product" data-product-id="2">
+            <img src="https://via.placeholder.com/100" alt="Advil">
+            <div class="product-details">
+                <h3>Advil</h3>
+                <p>Effective for reducing inflammation and pain.</p>
+            </div>
+            <div class="quantity-selector">
+                <label for="qty-advil">Quantity:</label>
+                <select id="qty-advil">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button onclick="addToCart('Advil', 2, document.getElementById('qty-advil').value)">Add to Cart</button>
+        </div>
+        <div class="product" data-product-id="3">
+            <img src="https://via.placeholder.com/100" alt="Bayer">
+            <div class="product-details">
+                <h3>Bayer</h3>
+                <p>Aspirin for pain relief and heart health.</p>
+            </div>
+            <div class="quantity-selector">
+                <label for="qty-bayer">Quantity:</label>
+                <select id="qty-bayer">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button onclick="addToCart('Bayer', 3, document.getElementById('qty-bayer').value)">Add to Cart</button>
+        </div>
+        <div class="product" data-product-id="4">
+            <img src="https://via.placeholder.com/100" alt="Amoxil">
+            <div class="product-details">
+                <h3>Amoxil</h3>
+                <p>Antibiotic for bacterial infections.</p>
+            </div>
+            <div class="quantity-selector">
+                <label for="qty-amoxil">Quantity:</label>
+                <select id="qty-amoxil">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button onclick="addToCart('Amoxil', 4, document.getElementById('qty-amoxil').value)">Add to Cart</button>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Online Pharmacy. All rights reserved.
+    </footer>
+</body>
+</html>

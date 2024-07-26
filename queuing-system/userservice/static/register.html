@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .tab {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .tab button {
+            width: auto;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab">
+            <button id="loginTab" onclick="showForm('login')">Login</button>
+            <button id="registerTab" onclick="showForm('register')">Register</button>
+        </div>
+        <div id="loginForm">
+            <h2>Login</h2>
+            <form id="loginFormSubmit">
+                <input type="text" id="loginEmail" name="email" placeholder="Email" required>
+                <input type="password" id="loginPassword" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div id="registerForm" style="display:none;">
+            <h2>Register</h2>
+            <form id="registerFormSubmit">
+                <input type="text" id="registerEmail" name="email" placeholder="Email" required>
+                <input type="password" id="registerPassword" name="password" placeholder="Password" required>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function showForm(formType) {
+            document.getElementById('loginForm').style.display = formType === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = formType === 'register' ? 'block' : 'none';
+        }
+
+        document.getElementById('loginFormSubmit').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'email': email,
+                        'password': password
+                    })
+                });
+
+                if (response.ok) {
+                    const userID = (await response.json()).userID;
+                    window.location.href = `http://localhost:9001/home.html`;
+                } else {
+                    alert('Login failed. Please check your email and password.');
+                }
+            } catch (error) {
+                console.error('Error logging in:', error);
+            }
+        });
+
+        document.getElementById('registerFormSubmit').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'email': email,
+                        'password': password
+                    })
+                });
+
+                if (response.ok) {
+                    const userID = (await response.json()).userID;
+                    window.location.href = `http://localhost:9001/home.html`;
+                } else {
+                    alert('Registration failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error registering:', error);
+            }
+        });
+    </script>
+</body>
+</html>
